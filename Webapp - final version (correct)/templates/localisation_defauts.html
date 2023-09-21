@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localisation des défauts</title>
+    <!-- Liens vers les fichiers CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.polylinemeasure/Leaflet.PolylineMeasure.css">
+    <!-- Liens vers les fichiers JavaScript -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/papaparse/papaparse.min.js"></script>
+    <script src="https://unpkg.com/leaflet.polylinemeasure/Leaflet.PolylineMeasure.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Ajouter du style à la liste des fichiers */
+        #fileListContainer {
+            margin-bottom: 10px;
+            margin-left: 10px; /* Ajoute une marge à gauche */
+            margin-right: 10px; /* Ajoute une marge à droite */
+        }
+        
+        .form-check {
+            margin-bottom: 5px;
+        }
+        
+        /* Ajouter du style au compteur de lignes sélectionnées */
+        #selectedLinesCount {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        /* Ajouter du style à la carte */
+        #map {
+            width: 100%;
+            height: 400px;
+            margin-right: 10px; /* Ajoute des marges à tous les côtés de la carte */
+        }
+        
+    
+        /* Ajouter du style aux info-bulles des marqueurs */
+        .leaflet-popup-content {
+            max-width: 200px;
+        }
+    
+        /* Ajouter du style au conteneur de la liste des fichiers lorsqu'il est masqué */
+        .file-list-hidden {
+            display: none;
+            
+        }
+    
+        /* Ajouter des styles pour rendre la page responsive */
+        @media (max-width: 768px) {
+            #map {
+                height: 300px;
+            }
+        }
+        /* Style pour la galerie d'images */
+        .image-gallery {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        .image-card {
+            flex: 0 0 auto;
+            margin-right: 10px; /* Marge entre les images */
+        }
+
+        .image-card img {
+            max-width: 100%; /* Pour s'assurer que les images ne débordent pas */
+            height: auto;
+        }
+        /* Style pour l'animation d'agrandissement */
+        .enlarge-animation {
+        animation-name: enlarge;
+        animation-duration: 0.5s;
+        animation-fill-mode: forwards;
+        }
+
+        @keyframes enlarge {
+        0% {
+            transform: scale(1);
+        }
+        100% {
+            transform: scale(1.8);
+        }
+        }  
+    </style>
+</head>
+    <!-- Navbar -->
+{% include 'navbar.html' %}
+<body>
+    <div style="display: flex; align-items: center;">
+        <button id="toggleFileListButton" onclick="toggleFileList()" style="margin-right: 50px;">Afficher la liste des fichiers</button>
+        <p id="totalMarkersCount"></p>
+    </div>
+    <div id="fileListContainer" class="file-list-hidden">
+        {% for file_name in files_list %}
+        {% if session.get('role') == 'admin' %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="file[]" value="{{ file_name }}" id="{{ file_name }}">
+                <label class="form-check-label" for="{{ file_name }}">{{ file_name }}</label>
+            </div>
+        {% else %}
+            {% set file_parts = file_name.split('\\') %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="file[]" value="{{ file_name }}" id="{{ file_name }}">
+                <label class="form-check-label" for="{{ file_name }}">{{ file_parts[-1] }}</label>
+            </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    <div id="selectedFilesCount"></div>
+    <div id="map" style="height: 600px;"></div>
+    <!-- Ajoutez cette section HTML sous la carte -->
+    <div class="container mt-4">
+        <div class="image-gallery">
+            {% for image_name, image_data in image_data_list %}
+            <div class="image-card">
+                <div class="card" style="width: 200px;">
+                    <img src="data:image/jpeg;base64,{{ image_data }}" class="card-img-top" alt="{{ image_name }}" data-toggle="modal" data-target="#imageModal{{ loop.index }}">
+                    <div class="card-body">
+                        <p class="card-text">{{ image_name }}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal pour afficher l'image en grand -->
+            <div class="modal fade" id="imageModal{{ loop.index }}" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="imageModalLabel">{{ image_name }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <img src="data:image/jpeg;base64,{{ image_data }}" class="img-fluid" alt="{{ image_name }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        var map;
+        var currentMapType = 'Street Map'; // Définir la carte de rue comme type de carte par défaut
+        var tileLayers = {};
+        // Fonction pour créer et afficher la carte par défaut
+        function createDefaultMap() {
+            map = L.map('map').setView([14.6928, -17.4467], 6); // Centré sur Dakar avec un zoom par défaut
+            var streetLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
+                maxZoom: 30,
+            });
+            var satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+            { zIndex: 50, opacity: 1, maxZoom: 24, subdomains: ["mt0", "mt1", "mt2", "mt3"]
+            });
+            var argisSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 17, // Vous pouvez ajuster le niveau de zoom maximum selon vos besoins
+            });
+            tileLayers['Street Map'] = streetLayer;
+            tileLayers['Satellite'] = satelliteLayer;
+            tileLayers['Argis Satellite'] = argisSatelliteLayer; // Ajouter la nouvelle couche ici
+            streetLayer.addTo(map); // Ajouter la carte de rue par défau
+            // Ajouter un gestionnaire d'événements pour gérer le changement de type de carte
+            map.on('baselayerchange', function (eventLayer) {
+                currentMapType = eventLayer.name; // Mettre à jour le type de carte actuel
+            });
+            // Ajouter le contrôle de couches de base
+            L.control.layers(tileLayers).addTo(map);
+            // Créez un contrôle pour mesurer les distances
+            var measureControl = new L.Control.PolylineMeasure({
+                position: 'topleft',
+                primaryLengthUnit: 'meters',
+                secondaryLengthUnit: 'kilometers',
+                primaryAreaUnit: 'sqmeters',
+                secondaryAreaUnit: undefined,
+            });
+            // Ajoutez le contrôle à la carte
+            measureControl.addTo(map);
+        }
+        createDefaultMap(); // Appeler la fonction pour créer la carte par défaut
+        var fileListContainer = document.getElementById('fileListContainer');
+        var toggleFileListButton = document.getElementById('toggleFileListButton');
+        function toggleFileList() {
+            if (fileListContainer.classList.contains('file-list-hidden')) {
+                fileListContainer.classList.remove('file-list-hidden');
+                toggleFileListButton.textContent = 'Cacher la liste des fichiers';
+            } else {
+                fileListContainer.classList.add('file-list-hidden');
+                toggleFileListButton.textContent = 'Afficher la liste des fichiers';
+            }
+        }
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                var selectedFiles = [];
+                checkboxes.forEach(function(checkbox) {
+                    if (checkbox.checked) {
+                        selectedFiles.push(checkbox.value);
+                    }
+
+                });
+                document.getElementById('selectedFilesCount').textContent = 'Nombre de fichiers sélectionnés : ' + selectedFiles.length;
+                fetch('/get-selected-files-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(selectedFiles)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    addMarkers(data);
+                    // Enregistrer les données des fichiers sélectionnés dans le local storage
+                    localStorage.setItem('selected_files_data', JSON.stringify(data));
+                               // Mettre à jour la galerie d'images
+                    updateImageGallery();
+                                // Mettre à jour le nombre total de points
+                    var totalCount = data.length;
+                    document.getElementById('totalMarkersCount').textContent = 'Nombre total de défauts sur la carte : ' + totalCount;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+        function addMarkers(data) {
+            // Supprimer les anciens marqueurs s'il y en a
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+            for (var i = 0; i < data.length; i++) {
+                var row = data[i];
+                var lat = row[4];
+                var lon = row[5];
+                var marker = L.marker([lat, lon]).addTo(map);
+                // Créez une info-bulle personnalisée
+                var popupContent = 'Latitude: ' + lat + '<br />Longitude: ' + lon + '<br />' + row.join('<br />');
+                marker.bindPopup(popupContent);
+                // Ajoutez un gestionnaire d'événements pour ouvrir l'info-bulle au survol
+                marker.on('mouseover', function (e) {
+                    this.openPopup();
+                });
+                // Ajoutez un gestionnaire d'événements pour fermer l'info-bulle lorsque le curseur quitte le marqueur
+                marker.on('mouseout', function (e) {
+                    this.closePopup();
+                });
+                // Définissez une variable pour suivre l'image actuellement agrandie
+                var currentZoomedImage = null;
+
+                // Modifiez la fonction marker.on('click', ...) pour gérer le zoom/dézoom
+                marker.on('click', function (e) {
+                    // Récupérez le nom du fichier de l'info-bulle
+                    var fileName = this.getPopup().getContent().split('<br />')[4];
+
+                    // Trouvez l'image correspondante
+                    var matchedImage = null;
+                    imageCards.forEach(function(imageCard) {
+                        var imageName = imageCard.querySelector('.card-text').textContent;
+                        if (imageName.includes(fileName)) {
+                            matchedImage = imageCard.querySelector('img');
+                        }
+                    });
+                    // Si une image correspondante a été trouvée
+                    if (matchedImage) {
+                        // Si une image est actuellement agrandie, dézoomez-la
+                        if (currentZoomedImage) {
+                            $(currentZoomedImage).removeClass('enlarge-animation');
+                            currentZoomedImage = null;
+                        }
+                        // Si l'image actuelle n'est pas déjà agrandie, effectuez le zoom
+                        if (matchedImage !== currentZoomedImage) {
+                            // Ajoutez une classe CSS pour appliquer une animation
+                            $(matchedImage).addClass('enlarge-animation');
+
+                            // Supprimez la classe après un court délai pour permettre à l'animation de se terminer
+                            setTimeout(function () {
+                                $(matchedImage).removeClass('enlarge-animation');
+                                currentZoomedImage = matchedImage; // Définissez l'image actuellement agrandie
+                            }, 2000); // Vous pouvez ajuster la durée de l'animation (en millisecondes) selon vos besoins
+                        } else {
+                            // Si l'image actuelle est déjà agrandie, dézoomez-la
+                            currentZoomedImage = null;
+                        }
+                        // Déplacez l'image agrandie vers le centre de la galerie d'images
+                        var gallery = document.querySelector('.image-gallery');
+                        matchedImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });                  
+            }
+            
+            //Zoom automatique pour adapter tous les marqueurs avec une animation
+            var bounds = L.latLngBounds([]);
+            for (var i = 0; i < data.length; i++) {
+                var row = data[i];
+                var lat = row[4];
+                var lon = row[5];
+                bounds.extend([lat, lon]);
+            }
+            map.flyToBounds(bounds, { animate: true });
+            }
+            // Vérifier si des données de fichiers sélectionnés sont stockées dans le local storage
+            var selectedFilesData = JSON.parse(localStorage.getItem('selected_files_data'));
+            if (selectedFilesData) {
+                addMarkers(selectedFilesData);
+                // Mettre à jour la galerie d'images
+                updateImageGallery();
+            }
+
+            // Actier le modal lorsque vous cliquez sur une image
+            $(document).ready(function () {
+                $('.img-thumbnail').click(function () {
+                    var imageName = $(this).next().find('.modal-title').text();
+                    console.log('Image cliquée :', imageName);
+                    $(this).next().modal('show');
+                });
+            });
+
+            // Récupérez les noms des fichiers de la colonne "2" du local storage
+            var selectedFilesData = JSON.parse(localStorage.getItem('selected_files_data'));
+            var fileNames = selectedFilesData.map(row => row[2]);
+
+            // Parcourez toutes les images de la galerie
+            var imageCards = document.querySelectorAll('.image-card');
+            imageCards.forEach(function(imageCard) {
+                // Récupérez le nom de l'image
+                var imageName = imageCard.querySelector('.card-text').textContent;
+
+                // Vérifiez si le nom de l'image correspond à l'un des noms de fichiers
+                var match = fileNames.some(fileName => imageName.includes(fileName));
+
+                // Si l'image ne correspond pas, cachez-la
+                if (!match) {
+                    imageCard.style.display = 'none';
+                }
+            });
+            function updateImageGallery() {
+                // Récupérez les noms des fichiers de la colonne "2" du local storage
+                var selectedFilesData = JSON.parse(localStorage.getItem('selected_files_data'));
+                var fileNames = selectedFilesData.map(row => row[2]);
+            
+                // Parcourez toutes les images de la galerie
+                var imageCards = document.querySelectorAll('.image-card');
+                imageCards.forEach(function(imageCard) {
+                    // Récupérez le nom de l'image
+                    var imageName = imageCard.querySelector('.card-text').textContent;
+            
+                    // Vérifiez si le nom de l'image correspond à l'un des noms de fichiers
+                    var match = fileNames.some(fileName => imageName.includes(fileName));
+            
+                    // Si l'image ne correspond pas, cachez-la
+                    if (!match) {
+                        imageCard.style.display = 'none';
+                    } else {
+                        // Si l'image correspond, affichez-la
+                        imageCard.style.display = 'block';
+                    }
+                });
+            }
+            var selectedFilesData = JSON.parse(localStorage.getItem('selected_files_data'));
+            var totalCount = selectedFilesData.length;
+            // Récupérez l'élément HTML par son id
+            var totalMarkersElement = document.getElementById('totalMarkersCount');
+            // Définissez le contenu de l'élément
+            totalMarkersElement.textContent = 'Nombre total de défauts sur la carte  : ' + totalCount;
+    </script>
+</body>
+
+</html>

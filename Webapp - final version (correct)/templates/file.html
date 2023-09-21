@@ -1,0 +1,288 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #F5F5F5;
+    }
+
+    .box {
+      width: 90%;
+      max-height: 90vh;
+      overflow: auto;
+      background-color: #FFF;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+      padding: 20px;
+      margin: 0 auto; /* Ajout de cette ligne pour centrer la boîte horizontalement */
+    }
+
+    h1 {
+      margin-top: 0;
+      padding: 20px;
+      background-color: #FFF;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+
+    .container {
+      display: block;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 20px;
+    }
+
+    .card {
+      flex: 0 0 calc(20% - 20px);
+      margin-bottom: 20px;
+      background-color: #FFF;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+      transition: transform 0.3s ease-in-out;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+    }
+
+    .card-icon {
+      font-size: 2.5rem; /* Réduit la taille de l'icône */
+      margin: 20px;
+      text-align: center;
+      width: 70px; /* Adjust the width of the image preview */
+      height: 70px; /* Adjust the height of the image preview */
+    }
+
+    .card-title {
+      text-align: center;
+      margin: 2PX;
+      padding: 2px;
+      font-size: 1rem;
+    }
+
+    .card-folder {
+      color: #9A9A9A;
+      text-align: center;
+    }
+
+    .card-folder:hover {
+      color : #00FF3E;
+    }
+    .card-folder {
+      color: #9A9A9A;
+      text-align: center;
+    }
+    
+    .card-folder.approved {
+      color: #00FF3E; /* Vert pour les dossiers approuvés */
+    }
+    
+    .card-folder.not-approved {
+      color: #FF0000; /* Rouge pour les dossiers non approuvés */
+    }
+
+    .card-file {
+      color: #00FFFF;
+      margin: 5px;
+    }
+    
+    .view-mode {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    
+    .view-mode button {
+      font-size: 1rem;
+      padding: 5px 10px;
+    }
+    
+    .view-mode .btn-link {
+      text-decoration: none;
+    }
+    
+    .container.card-view .card {
+      flex: 0 0 calc(20% - 10px); /* Ajuste la taille des cartes en mode carte */
+    }
+    
+    /* Styles pour les écrans larges */
+    @media (min-width: 768px) {
+      /* Ajoutez ici vos styles pour les écrans larges */
+    }
+  
+    /* Styles pour les écrans étroits (vue mobile) */
+    @media (max-width: 767px) {
+      .card-icon {
+        font-size: 2rem; /* Réduit la taille des icônes en vue mobile */
+      }
+      
+      .card-title {
+        font-size: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .container.card-view .card {
+        flex: 0 0 calc(40% - 10px); /* Ajuste la taille des cartes en mode carte en vue mobile */
+      }
+    }
+    
+  </style>
+</head>
+<!-- Inclure la navbar -->
+{% include 'navbar.html' %}
+<body>
+  <div class="view-mode">
+    <button id="list-view-btn" class="btn btn-link"><i class="fas fa-list-ul"></i> Liste</button>
+    <button id="card-view-btn" class="btn btn-link"><i class="fas fa-th-large"></i> Carte</button>
+  </div>  
+  <div class="box">
+    <h1>Mes Fichiers</h1>
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Rechercher...">
+  </div>
+    <div class="container">
+      <a href="{{ url_for('profil') }}">
+        <div class="card">
+          <i class="fas fa-arrow-left card-icon"></i>
+          <h2 class="card-title">Retour à profil</h2>
+        </div>
+      </a>
+      {% if path %}
+        <div class="card">
+          <a href="{{ url_for('files') }}">
+            <i class="fas fa-folder card-icon card-folder"></i>
+            <h2 class="card-title">Retour</h2>
+          </a>
+        </div>
+      {% endif %}
+      {% for folder, modified_date in folders %}
+      <div class="card">
+        <a href="{{ url_for('files', path=path+'/'+folder) }}">
+          <i class="fas fa-folder card-icon card-folder{% if folder in approved_sessions %} approved{% elif folder in not_approved_sessions %} not-approved{% endif %}"></i>
+          <h2 class="card-title">{{ folder }}</h2>
+          <p class="card-title">Last Modified: {{ modified_date.strftime("%Y-%m-%d %H:%M:%S") }}</p>
+        </a>
+        {% if session['role'] == 'admin' %}
+          {% if folder in approved_sessions %}
+            <form action="{{ url_for('disapprove_session') }}" method="POST" onsubmit="return confirm('Cette session est déjà approuvée. Êtes-vous sûr de la désapprouver ?');">
+              <input type="hidden" name="session_id" value="{{ folder }}">
+              <button type="submit" class="btn btn-danger">Désapprouver</button>
+            </form>
+          {% else %}
+            <form action="{{ url_for('approve_session') }}" method="POST">
+              <input type="hidden" name="session_id" value="{{ folder }}">
+              <button type="submit" class="btn btn-primary">Approuver</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endfor %}
+      {% for file, modified_date in files %}
+        <div class="card">
+          <a href="{{ url_for('image_preview', filename=path+'/'+file) }}" data-fancybox="gallery" data-caption="{{ file }}">
+            <img src="{{ url_for('image_preview', filename=path+'/'+file) }}" class="card-icon{% if is_mobile %} mobile{% endif %}" alt="Preview">
+          </a>
+          <h2 class="card-title">{{ file }}</h2>
+          <p class="card-title">Last Modified: {{ modified_date.strftime("%Y-%m-%d %H:%M:%S") }}</p>
+        </div>
+      {% endfor %}
+      {% for file, modified_date in files %}
+      <div class="card">
+        <a href="{{ url_for('download', filename=path+'/'+file) }}">
+          {% if file.endswith('.png') or file.endswith('.jpg') or file.endswith('.jpeg') %}
+            <img src="{{ url_for('image_preview', filename=path+'/'+file) }}" class="card-icon{% if is_mobile %} mobile{% endif %}" alt="Preview">
+          {% elif file.endswith('.pdf') %}
+            <i class="far fa-file-pdf card-icon{% if is_mobile %} mobile{% endif %}"></i>
+          {% elif file.endswith('.doc') or file.endswith('.docx') %}
+            <i class="far fa-file-word card-icon{% if is_mobile %} mobile{% endif %}"></i>
+          {% elif file.endswith('.xls') or file.endswith('.xlsx') %}
+            <i class="far fa-file-excel card-icon{% if is_mobile %} mobile{% endif %}"></i>
+          {% elif file.endswith('.ppt') or file.endswith('.pptx') %}
+            <i class="far fa-file-powerpoint card-icon{% if is_mobile %} mobile{% endif %}"></i>
+          {% else %}
+            <i class="fas fa-file card-icon card-file{% if is_mobile %} mobile{% endif %}"></i>
+          {% endif %}
+          <h2 class="card-title">{{ file }}</h2>
+          <p class="card-title">Last Modified: {{ modified_date.strftime("%Y-%m-%d %H:%M:%S") }}</p>
+        </a>
+      </div>
+    {% endfor %}
+    </div>
+  </div>
+  <script>
+    $(document).ready(function() {
+      // Afficher le mode carte par défaut
+      $('.container').addClass('card-view');
+    
+      // Basculer en mode liste
+      $('#list-view-btn').click(function() {
+        $('.container').removeClass('card-view');
+      });
+    
+      // Basculer en mode carte
+      $('#card-view-btn').click(function() {
+        $('.container').addClass('card-view');
+      });
+    
+      // Initialize Fancybox for images with the data-fancybox attribute
+      $("[data-fancybox]").fancybox({
+        loop: true,
+        transitionEffect: "slide",
+        buttons: [
+          "zoom",
+          "slideShow",
+          "fullScreen",
+          "download",
+          "thumbs",
+          "close"
+        ]
+      });
+    });
+      $(document).ready(function() {
+          function searchInFilesAndFolders(rootElement, searchText) {
+              rootElement.find(".card").each(function() {
+                  var fileName = $(this).find(".card-title").text().toLowerCase();
+                  if (fileName.includes(searchText)) {
+                      $(this).show();
+                  } else {
+                      $(this).hide();
+                  }
+              });
+  
+              rootElement.find(".card-folder").each(function() {
+                  var folderName = $(this).text().toLowerCase();
+                  searchInFilesAndFolders($(this).parent(), searchText);
+              });
+          }
+          // Fonction de filtrage en temps réel
+          $("#search-input").on("input", function() {
+              var searchText = $(this).val().toLowerCase();
+              searchInFilesAndFolders($(".box"), searchText);
+          });
+      });
+  </script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  
+</body>
+</html>
+
+

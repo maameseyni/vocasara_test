@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css">
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+
+      .login-form {
+        max-width: 400px;
+        min-height: 500px;
+        margin: 0 auto;
+        margin-top: 100px;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+        background-color: #EAEDED ;
+      }
+
+      .login-form h2 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .login-form .form-control {
+        border-radius: 5px;
+      }
+
+      .login-form .btn {
+        margin-top:50px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+      }
+      .container{
+        margin-top:180px;
+
+
+      }
+
+    </style>
+        <!-- Ajouter le logo dans l'onglet de navigation -->
+        <link rel="icon" href="logo/logo.png" type="image/png">
+    <title>Formulaire de connexion</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="login-form">
+        <h2>Connexion</h2>
+        <form method="POST" action="/validate">
+          {{ form.csrf_token }}
+          <div class="mb-3">
+              {{ form.user.label }} {{ form.user(class="form-control", placeholder="Nom d'utilisateur", autofocus=True) }}
+          </div>
+          <div class="mb-3">
+              {{ form.password.label }} {{ form.password(class="form-control", placeholder="Mot de passe") }}
+          </div>
+          <div class="d-grid gap-2">
+              {{ form.submit(class="btn btn-primary") }}
+          </div>
+          {% for message in get_flashed_messages() %}
+              <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+                  {{ message }}
+              </div>
+          {% endfor %}
+      </form>      
+      </div>
+    </div>
+    <footer>
+      <div class="container">
+        <div class="text-center">
+          <p>@vocasara 2023. Tous droits réservés.Login Page</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

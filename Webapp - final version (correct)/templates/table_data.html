@@ -1,0 +1,100 @@
+﻿<html>
+<head>
+    <title>{{ schema_name }} - {{ table_name }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .table-container {
+            margin-top: 1em;
+        }
+
+        .btn-margin {
+            margin: 1em auto;
+        }
+
+        /* Ajout des styles pour gérer le débordement */
+        .table td {
+            word-wrap: break-word; /* Permet de passer à la ligne si le texte est trop long */
+            max-width: 300px; /* Définir une largeur maximale pour les cellules */
+            overflow: hidden; /* Masque le contenu qui dépasse */
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <!-- Ajout de la barre de recherche -->
+        <input type="text" id="searchInput" onkeyup="searchFunction()" placeholder="Rechercher..">
+        <!-- Votre code HTML ici -->
+        <a href="{{ url_for('app3.add_row', schema_name=schema_name, table_name=table_name) }}" class="btn btn-success"><i class="fas fa-plus"></i> Ajouter une ligne</a>
+        <a href="{{ url_for('app3.view_tables', schema_name='client') }}" class="btn btn-secondary mb-4"><i class="fas fa-arrow-left"></i> Retour</a>
+        <h1>{{ schema_name }} - {{ table_name }}</h1>
+        <div class="table-container">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        {% for column in columns %}
+                            <th scope="col">{{ column['Field'] }}</th>
+                        {% endfor %}
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            {% for key, value in row.items() %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                            <td>
+                                <a href="{{ url_for('app3.edit_row', schema_name=schema_name, table_name=table_name, row_id=row['id']) }}" class="btn btn-primary btn-sm btn-margin"><i class="fas fa-edit"></i> Modifier</a>
+                                <a href="{{ url_for('app3.delete_row', schema_name=schema_name, table_name=table_name, row_id=row['id']) }}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Supprimer</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{{ url_for('app3.add_row', schema_name=schema_name, table_name=table_name) }}" class="btn btn-success"><i class="fas fa-plus"></i> Ajouter une ligne</a>
+    </div>
+    <script>
+        function searchFunction() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("searchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementsByClassName("table")[0];
+            tr = table.getElementsByTagName("tr");
+
+            for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td");
+                for (var j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = "";
+                            break;
+                        } else {
+                            tr[i].style.display = "none";
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</body>
+</html>

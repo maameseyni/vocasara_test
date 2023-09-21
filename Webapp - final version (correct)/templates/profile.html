@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profil Utilisateur</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f1f1f1;
+        }
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            
+        }
+
+        .profile-box {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            animation-duration: 2s;
+            animation-fill-mode: both;
+            animation-name: fade-in-down;
+           
+        }
+
+
+        .profile-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 0.8, 0, 0.8);
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .profile-photo:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-info {
+            margin-bottom: 10px;
+        }
+
+        .profile-info-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f1f1f1;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .profile-info-box strong {
+            margin-right: 10px;
+        }
+
+        .profile-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 767px) {
+            .profile-buttons {
+                flex-wrap: wrap;
+                margin-top: 20px;
+            }
+
+            .profile-buttons .btn {
+                margin: 5px;
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .profile-box {
+                width: 90%;
+            }
+        }
+
+        /* Animations */
+        @keyframes fade-in-down {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<!-- Inclure la navbar -->
+{% include 'navbar.html' %}
+<body>
+    <div class="container">
+        <div class="profile-container">
+            <div class="profile-box">
+                <h2 class="text-center mb-4">Profil Utilisateur</h2>
+                <div id="alert-container"></div>
+                <div class="text-center mb-4">
+                    <img src="data:image/jpeg;base64,{{ profile_photo }}" class="profile-photo" alt="Photo de profil">
+                </div>
+                <div class="profile-info">
+                    <div class="profile-info-box">
+                        <strong>Email :</strong>
+                        <div>{{ email }}</div>
+                    </div>
+                    <div class="profile-info-box">
+                        <strong>Date d'enregistrement :</strong>
+                        <div>{{ registration_date }}</div>
+                    </div>
+                    <div class="profile-info-box">
+                        <strong>Service :</strong>
+                        <div>{{ service }}</div>
+                    </div>
+                    <div class="profile-info-box">
+                        <strong>Heure/Date de connexion :</strong>
+                        <div>{{ last_login }}</div>
+                    </div>
+                </div>
+                <div class="profile-buttons">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#changePhotoModal">Changer la photo</button>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deletePhotoModal">Supprimer la photo</button>
+                </div>
+                <div class="profile-buttons mt-4">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#changePasswordModal">Changer le mot de passe</button>
+                    <a href="/logout" class="btn btn-secondary">Déconnexion</a>
+                    <a href="/files" class="btn btn-info">Mes fichiers</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="changePhotoModal" tabindex="-1" role="dialog" aria-labelledby="changePhotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePhotoModalLabel">Changer la photo de profil</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="/change_photo" method="post" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="photo">Sélectionner une photo :</label>
+                            <input type="file" class="form-control-file" id="photo" name="file" accept="image/jpeg, image/png">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deletePhotoModal" tabindex="-1" role="dialog" aria-labelledby="deletePhotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deletePhotoModalLabel">Supprimer la photo de profil</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="/delete_photo" method="post">
+                    <div class="modal-body">
+                        <p>Êtes-vous sûr de vouloir supprimer votre photo de profil ?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordModalLabel">Changer le mot de passe</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="/change_password" method="post">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="current_password">Mot de passe actuel :</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">Nouveau mot de passe :</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirmer le nouveau mot de passe :</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Confirmer</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome message modal -->
+    <div class="modal fade" id="welcomeModal" tabindex="-1" role="dialog" aria-labelledby="welcomeModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="welcomeModalLabel">Bienvenue {{ email }} !</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Nous sommes ravis de vous accueillir sur notre plateforme. N'hésitez pas à explorer toutes les fonctionnalités et à nous contacter si vous avez des questions. Cette partie concerne votre profil, vous pouvez accéder à vos fichiers, changer de photos et de mot de passe.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Show welcome message modal
+            $('#welcomeModal').modal('show');
+
+            // Close the profile page
+            $('.close').click(function() {
+                window.close();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+﻿#emoji-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#emoji {
+    font-size: 10rem;
+    cursor: pointer;
+}
+
+#emoji.happy {
+    color: yellow;
+}
+
+#emoji.sad {
+    color: blue;
+}
+
+#emoji.angry {
+    color: red;
+}

@@ -1,0 +1,237 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Sélectionnez des fichiers</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Ajouter les liens Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+     <!-- notification styles-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    
+    <style>
+        #chartCanvas {
+            height: 550px; /* Ajustez la hauteur du graphique selon vos préférences */
+            width: 100%; /* Assurez-vous que le graphique occupe toute la largeur du conteneur */
+        }
+        .file-list-hidden {
+            display: none;
+        }
+    </style>
+</head>
+    <!-- Navbar -->
+    {% include 'navbar.html' %}
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Container pour "Statistics" -->
+            <div class="col-md-6">
+                <div class="bg-light p-3 rounded">
+                    <h2>Sélectionnez des fichiers</h2>
+                    <form id="chartForm">
+                        <div id="fileListContainer" class="file-list-hidden">
+                            {% for file_name in files_list %}
+                                {% if session.get('role') == 'admin' %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="file[]" value="{{ file_name }}" id="{{ file_name }}">
+                                        <label class="form-check-label" for="{{ file_name }}">{{ file_name }}</label>
+                                    </div>
+                                {% else %}
+                                    {% set file_parts = file_name.split('\\') %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="file[]" value="{{ file_name }}" id="{{ file_name }}">
+                                        <label class="form-check-label" for="{{ file_name }}">{{ file_parts[-1] }}</label>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            <select name="chart-type" class="form-control mb-2">
+                                <option value="pie">Pie</option>
+                                <option value="bar">Barres</option>
+                            </select>
+                        </div>
+                    </form>
+                    <!-- Ajouter un bouton pour réduire/étendre la fenêtre -->
+                    <button id="toggleFileList" class="btn btn-secondary btn-sm" data-state="reduit">Réduire</button>
+                </div>
+            </div>
+            <!-- Container pour "Energie non distribuée" -->
+            <div class="col-md-6">
+                <div class="bg-light p-3 rounded">
+                    <h2>Energie non distribuée</h2>
+                    <!-- Contenu du deuxième container -->
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <!-- Conteneur pour le graphique -->
+            <div class="col-md-12">
+                <div id="chartTitle" class="text-center mt-2"></div> 
+                <div class="bg-light p-3 rounded">
+                    <canvas id="chartCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var ctx = document.getElementById('chartCanvas').getContext('2d');
+        var chart;
+
+        // Utiliser jQuery pour intercepter la sélection des fichiers
+        $('#chartForm').on('change', 'input[name="file[]"], input[name="date-filter"]', function() {
+            // Récupérer les fichiers sélectionnés
+            var selected_files = $('input[name="file[]"]:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            // Récupérer les données et mettre à jour le graphique
+            var formData = new FormData($('#chartForm')[0]);
+            formData.delete('file[]'); // Supprimer les anciennes valeurs des fichiers
+            selected_files.forEach(function(file) {
+                formData.append('file[]', file); // Ajouter les nouveaux fichiers sélectionnés
+            });
+
+            fetch('/statistics', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => updateChartAndSave(data));
+        });
+
+        // Gérer le clic sur le bouton de réduction/extension
+        $('#toggleFileList').on('click', function() {
+            $('#fileListContainer').toggleClass('file-list-hidden');
+            const currentState = $(this).attr('data-state');
+            if (currentState === "reduit") {
+                $(this).text("Réduire");
+                $(this).attr('data-state', 'etendre');
+            } else {
+                $(this).text("Étendre");
+                $(this).attr('data-state', 'reduit');
+            }
+        });
+
+        function updateChart(chartData) {
+            if (chart) {
+                chart.destroy();
+            }
+            var labels = chartData.labels;
+            var data = chartData.values;
+        
+            if (chartData.numbers) {
+                data = chartData.numbers;
+            }
+        
+            var percentages = chartData.percentages;  // Récupérer les pourcentages
+        
+            var chartType = chartData.chartType;
+            chart = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: labels.map((label, index) => label + ' (' + percentages[index].toFixed(2) + '%)'),  // Inclure les pourcentages dans les étiquettes
+                    datasets: [{
+                        data: data,
+                        backgroundColor: generateRandomColors(data.length)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            });
+        }
+        
+        function generateRandomColors(count) {
+            var colors = [];
+            for (var i = 0; i < count; i++) {
+                colors.push(getRandomColor());
+            }
+            return colors;
+        }
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        const options = document.querySelectorAll('select[name="file[]"] option');
+        const tooltip = document.getElementById('tooltip');
+
+        options.forEach(option => {
+            option.addEventListener('click', (event) => {
+                event.preventDefault();
+
+                const title = event.target.getAttribute('data-title');
+                updateChartTitle(title); // Mettre à jour le titre du graphique avec le nom du fichier
+            });
+        });
+
+        function updateChartTitle(title) {
+            const chartTitleContainer = document.getElementById('chartTitle');
+            chartTitleContainer.textContent = title; // Mettre à jour le contenu du conteneur du titre
+        }
+
+        $(document).ready(function() {
+            const storedFiles = JSON.parse(localStorage.getItem('selectedFiles')) || [];
+            storedFiles.forEach(file => {
+                $(`input[name="file[]"][value="${file}"]`).prop('checked', true);
+            });
+
+            const storedChartData = JSON.parse(localStorage.getItem('chartData')) || null;
+            if (storedChartData) {
+                updateChart(storedChartData);
+            }
+
+            // Fonction pour mettre à jour le graphique et sauvegarder les données
+            function updateChartAndSave(chartData) {
+                updateChart(chartData);
+                localStorage.setItem('chartData', JSON.stringify(chartData));
+            }
+
+            $('#chartForm').on('change', 'input[name="file[]"], input[name="date-filter"]', function() {
+                var selected_files = $('input[name="file[]"]:checked').map(function() {
+                    return $(this).val();
+                }).get();
+                var date_filter = $('input[name="date-filter"]').val();
+                var formData = new FormData($('#chartForm')[0]);
+                formData.delete('file[]');
+                selected_files.forEach(function(file) {
+                    formData.append('file[]', file);
+                });
+                formData.append('date-filter', date_filter);
+
+                fetch('/statistics', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => updateChartAndSave(data));
+
+                localStorage.setItem('selectedFiles', JSON.stringify(selected_files.map(file => file.split('\\').pop())));
+            });
+
+            // Charger automatiquement les graphiques lors du chargement de la page
+            const selectedFiles = $('input[name="file[]"]:checked').map(function() {
+                return $(this).val();
+            }).get();
+            if (selectedFiles.length > 0) {
+                fetch('/statistics', {
+                    method: 'POST',
+                    body: new FormData($('#chartForm')[0])
+                })
+                .then(response => response.json())
+                .then(data => {
+                    updateChartAndSave(data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

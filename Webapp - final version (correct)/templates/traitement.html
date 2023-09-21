@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Chargement d'images</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .result-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            transition: box-shadow 0.3s;
+        }
+        .result-box:hover {
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        .delete-button {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .btn-long {
+            width: 200px;
+        }
+        
+        .btn-wide {
+            width: 300px;
+        }
+        
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin-bottom: 50px;
+        }
+    </style>
+
+</head>
+<!-- Inclure la navbar -->
+{% include 'navbar.html' %}
+<body>
+<div class="container">
+    <h1>Traitements d'images</h1>
+    <p>Merci de vérifier que les images traitées sont bien des défauts électriques. Les formats non pris en charge seront simplement ignorés.</p>
+    </div>
+    <button type="button" class="btn btn-primary" onclick="loadImages()">Charger les images</button>
+    <a href="/profile" class="btn btn-primary">Aller au profil</a>
+    </div>
+    </div>
+    <div id="imageProgressContainer" style="display: none;">
+        <progress id="imageProgress" value="0" max="100"></progress>
+        <p id="progressText"></p>
+    </div>
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_and_predict') }}">
+        <div class="form-group">
+            <div id="dropArea" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer;">
+                <input type="file" name="files" id="fileInput" multiple style="display: none;">
+                <label for="fileInput" class="btn btn-primary">Sélectionner des images</label>
+                <p>Ou faites glisser-déposer les fichiers ici</p>
+            </div>
+            <div id="imagePreview"></div>
+    </form>
+
+    <script>
+        function loadImages() {
+            // Afficher la barre de progression
+            var progressContainer = document.getElementById("imageProgressContainer");
+            progressContainer.style.display = "block";
+            var progress = document.getElementById("imageProgress");
+            var progressText = document.getElementById("progressText");
+
+            // Désactiver le bouton de chargement
+            var loadButton = document.querySelector("button");
+            loadButton.disabled = true;
+
+            // Charger les images
+            var files = document.getElementById("fileInput").files;
+            var totalFiles = files.length;
+            var loadedFiles = 0;
+
+            function updateProgress() {
+                loadedFiles++;
+                var progressValue = (loadedFiles / totalFiles) * 100;
+                progress.value = progressValue;
+                progressText.innerHTML = "Chargement en cours : " + loadedFiles + " / " + totalFiles;
+
+                if (loadedFiles === totalFiles) {
+                    // Tous les fichiers sont chargés, soumettre le formulaire
+                    document.querySelector("form").submit();
+                }
+            }
+
+            // Charger les images
+            for (var i = 0; i < totalFiles; i++) {
+                var reader = new FileReader();
+                reader.onloadend = function(event) {
+                    var image = document.createElement("img");
+                    image.src = event.target.result;
+                    image.classList.add("preview-image");
+        
+                    // Compresser l'image
+                    var compressor = new ImageCompressor();
+                    compressor.compress(image, {
+                        quality: 0.6,  // Réglez la qualité de compression souhaitée (entre 0 et 1)
+                        success(result) {
+                            // L'image compressée est disponible dans la variable 'result'
+                            image.src = result;
+                        },
+                        error(e) {
+                            // Gestion des erreurs lors de la compression
+                            console.error(e.message);
+                        },
+                    });
+        
+                    document.getElementById("imagePreview").appendChild(image);
+                    updateProgress();
+                };
+                reader.readAsDataURL(files[i]);
+            }
+        }
+        
+        // Gestion du glisser-déposer
+        var dropArea = document.getElementById("dropArea");
+        
+        dropArea.addEventListener("dragenter", function(event) {
+            event.preventDefault();
+            dropArea.style.border = "2px dashed #aaa";
+        });
+        
+        dropArea.addEventListener("dragleave", function(event) {
+            event.preventDefault();
+            dropArea.style.border = "2px dashed #ccc";
+        });
+        
+        dropArea.addEventListener("dragover", function(event) {
+            event.preventDefault();
+        });
+        
+        dropArea.addEventListener("drop", function(event) {
+            event.preventDefault();
+            dropArea.style.border = "2px dashed #ccc";
+            
+            var files = event.dataTransfer.files;
+            document.getElementById("fileInput").files = files;
+            
+            // Afficher les prévisualisations des images
+            var imagePreview = document.getElementById("imagePreview");
+            imagePreview.innerHTML = "";
+            for (var i = 0; i < files.length; i++) {
+                var reader = new FileReader();
+                reader.onloadend = function(event) {
+                    var image = document.createElement("img");
+                    image.src = event.target.result;
+                    image.classList.add("preview-image");
+                    imagePreview.appendChild(image);
+                };
+                reader.readAsDataURL(files[i]);
+            }
+        });
+    </script>
+    
+    <div>                  
+    {% if detected_defects %}
+        <h2>Calculs </h2>
+        <p>Probabilité de chaque défaut détecté :</p>
+        <ul>
+            {% for defect, prob in detected_defects %}
+                <li>{{ defect }} - Probability: {{ prob }}%</li>
+            {% endfor %}
+        </ul>
+        <div class="row">
+            <div class="col-lg-9">
+                <div class="result-box">
+                    <h2>Résultats</h2>
+                    <p>Le nombre total de défauts détectés :</p>
+                    <ul>
+                        {% for defect_name, defect_count in defect_counts.items() %}
+                            <li>{{ defect_name }} : {{ defect_count }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+    
+            
+            <div class="col-lg-3">
+                <div class="btn-group-vertical" role="group">
+                    <button type="button" class="btn btn-primary" onclick="changeChart('bar')">Histogramme</button>
+                    <button type="button" class="btn btn-primary" onclick="changeChart('pie')">Secteurs</button>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="defectChart"></canvas>
+        <script>
+            var defectData = [];
+            {% for defect_name, defect_count in defect_counts.items() %}
+                defectData.push({ label: "{{ defect_name }}", count: {{ defect_count }} });
+            {% endfor %}
+
+            var ctx = document.getElementById('defectChart').getContext('2d');
+            var currentChart;
+
+            function changeChart(chartType) {
+                if (currentChart) {
+                    currentChart.destroy();
+                }
+
+                if (chartType === 'bar') {
+                    currentChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: defectData.map(function(defect) { return defect.label; }),
+                            datasets: [{
+                                label: 'Nombre de défauts',
+                                data: defectData.map(function(defect) { return defect.count; }),
+                                backgroundColor: '#36A2EB'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            legend: {
+                                display: false
+                            }
+                        }
+                    });
+                } else if (chartType === 'pie') {
+                    currentChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: defectData.map(function(defect) { return defect.label; }),
+                            datasets: [{
+                                data: defectData.map(function(defect) { return defect.count; }),
+                                backgroundColor: [
+                                    '#FF6384',
+                                    '#36A2EB',
+                                    '#FFCE56',
+                                    '#8B008B',
+                                    // Ajoutez plus de couleurs ici si vous avez plus de défauts
+                                ],
+                                hoverBackgroundColor: '#CCCCCC'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Afficher l'histogramme par défaut
+            changeChart('bar');
+        </script>
+    {% endif %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://unpkg.com/image-compressor.js/dist/image-compressor.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+ <!-- notification styles-->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</body>
+</html>

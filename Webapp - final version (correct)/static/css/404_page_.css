@@ -1,0 +1,290 @@
+﻿@keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes jello-horizontal {
+    0%,
+    to {
+      transform: scale3d(1, 1, 1);
+    }
+    30% {
+      transform: scale3d(1.25, 0.75, 1);
+    }
+    40% {
+      transform: scale3d(0.75, 1.25, 1);
+    }
+    50% {
+      transform: scale3d(1.15, 0.85, 1);
+    }
+    65% {
+      transform: scale3d(0.95, 1.05, 1);
+    }
+    75% {
+      transform: scale3d(1.05, 0.95, 1);
+    }
+  }
+  .photoroom-1-icon {
+    position: relative;
+    width: 919px;
+    height: 713px;
+    object-fit: cover;
+  }
+  .image-down {
+    position: absolute;
+    bottom: -29px;
+    left: calc(50% - 452px);
+    width: 911px;
+    height: 713px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    opacity: 0;
+  }
+  .image-down.animate,
+  .image-up.animate {
+    animation: 2s ease 1s 1 normal forwards fade-in;
+  }
+  .photoroom-2-icon {
+    position: relative;
+    width: 918px;
+    height: 713px;
+    object-fit: cover;
+  }
+  .image-up {
+    position: absolute;
+    top: -33px;
+    left: calc(50% - 509px);
+    width: 1018px;
+    height: 713px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--padding-31xl);
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: flex-start;
+    opacity: 0;
+  }
+  .rouder-child {
+    position: relative;
+    border-radius: 50%;
+    background: linear-gradient(
+      180deg,
+      rgba(146, 146, 146, 0.2),
+      rgba(146, 146, 146, 0)
+    );
+    width: 1440px;
+    height: 72px;
+  }
+  .error,
+  .i,
+  .rouder {
+    display: flex;
+    align-items: center;
+  }
+  .rouder {
+    position: absolute;
+    top: calc(50% - 40px);
+    left: calc(50% - 720px);
+    flex-direction: column;
+    justify-content: center;
+  }
+  .error,
+  .i {
+    position: relative;
+    font-weight: 700;
+  }
+  .i {
+    width: 212px;
+    text-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  }
+  .error {
+    font-size: var(--font-size-17xl);
+    width: 98px;
+  }
+  .text-child {
+    position: relative;
+    width: 141.33px;
+    height: 26.67px;
+  }
+  .page-non-trouve {
+    position: relative;
+    font-size: 32px;
+    display: flex;
+    font-weight: 700;
+    align-items: center;
+    width: 290px;
+  }
+  .text-item {
+    position: relative;
+    width: 138.67px;
+    height: 21.33px;
+  }
+  .text1 {
+    position: absolute;
+    height: calc(100% - 760.5px);
+    width: 22.22%;
+    top: 422.25px;
+    right: 76.74%;
+    bottom: 338.25px;
+    left: 1.04%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 16px;
+    opacity: 1;
+    text-align: left;
+    font-size: 96px;
+    color: var(--color-white);
+    font-family: var(--font-inter);
+  }
+  .text1.animate {
+    animation: 1s ease 0s 1 normal forwards jello-horizontal;
+  }
+  .page1 {
+    position: relative;
+    background-color: #656565;
+    width: 100%;
+    height: 1024px;
+    overflow: hidden;
+  }
+  @media screen and (max-width: 960px) {
+    .text1 {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 400px;
+      box-sizing: border-box;
+    }
+  }
+  @media screen and (max-width: 420px) {
+    .photoroom-1-icon {
+      width: 500px;
+      height: 300px;
+      opacity: 1;
+    }
+    .photoroom-1-icon.animate {
+      animation: 1s ease 0s 1 normal forwards jello-horizontal;
+    }
+    @keyframes jello-horizontal {
+      0%,
+      to {
+        transform: scale3d(1, 1, 1);
+      }
+      30% {
+        transform: scale3d(1.25, 0.75, 1);
+      }
+      40% {
+        transform: scale3d(0.75, 1.25, 1);
+      }
+      50% {
+        transform: scale3d(1.15, 0.85, 1);
+      }
+      65% {
+        transform: scale3d(0.95, 1.05, 1);
+      }
+      75% {
+        transform: scale3d(1.05, 0.95, 1);
+      }
+    }
+    .image-down {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 var(--padding-31xl) var(--padding-181xl);
+      box-sizing: border-box;
+      opacity: 0;
+    }
+    .image-down.animate,
+    .image-up.animate {
+      animation: 1s ease 0s 1 normal forwards fade-in;
+    }
+    @keyframes fade-in {
+      0% {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    .photoroom-2-icon {
+      width: 500px;
+      height: 300px;
+    }
+    .image-up,
+    .rouder {
+      flex-direction: column;
+      box-sizing: border-box;
+    }
+    .image-up {
+      width: auto;
+      align-self: unset;
+      height: auto;
+      align-items: center;
+      justify-content: center;
+      padding-left: 250px;
+      padding-top: var(--padding-181xl);
+      padding-right: 0;
+      opacity: 0;
+    }
+    @keyframes fade-in {
+      0% {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    .rouder {
+      padding-left: var(--padding-81xl);
+      padding-right: var(--padding-81xl);
+    }
+    .i {
+      font-size: var(--font-size-31xl);
+    }
+    .error,
+    .page-non-trouve {
+      font-size: var(--font-size-6xl);
+    }
+    .text1 {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding-left: var(--padding-81xl);
+      padding-top: 450px;
+      padding-right: var(--padding-81xl);
+      box-sizing: border-box;
+      opacity: 1;
+    }
+    .text1.animate {
+      animation: 1s ease 0s 1 normal forwards wobble-hor-bottom;
+    }
+    @keyframes wobble-hor-bottom {
+      0%,
+      to {
+        transform: translateX(0);
+        transform-origin: 50% 50%;
+      }
+      15% {
+        transform: translateX(-30px) rotate(-6deg);
+      }
+      30% {
+        transform: translateX(15px) rotate(6deg);
+      }
+      45% {
+        transform: translateX(-15px) rotate(-3.6deg);
+      }
+      60% {
+        transform: translateX(9px) rotate(2.4deg);
+      }
+      75% {
+        transform: translateX(-6px) rotate(-1.2deg);
+      }
+    }
+  }
+  

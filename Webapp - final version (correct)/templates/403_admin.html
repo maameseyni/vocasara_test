@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+    <link rel="stylesheet" href="./static/css/403.css" />
+    <link rel="stylesheet" href="./static/css/403_global.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,700;1,700&display=swap"
+    />
+  </head>
+  <body>
+    <div class="page">
+      <div class="text">
+        <div class="nous-sommes-dsol-mais-vous-n-wrapper">
+          <div class="nous-sommes-dsol" data-animate-on-scroll>
+            Nous sommes désolé mais vous n’avez pas accés à cette page
+          </div>
+        </div>
+        <div class="ellipse-parent">
+          <div class="frame-child"></div>
+          <div class="frame-item"></div>
+          <div class="frame-item"></div>
+          <div class="ellipse-div"></div>
+        </div>
+      </div>
+      <div class="stop">
+        <div class="violations-de-securit-wrapper">
+          <i class="violations-de-securit">Violations de securité</i>
+        </div>
+      </div>
+      <div class="stop-403-wrapper">
+        <i class="stop-403" data-animate-on-scroll>
+          <p class="stop-4031">STOP 403</p>
+        </i>
+      </div>
+      <div class="main">
+        <img
+          class="ahbuieyx-removebg-preview-1-icon"
+          alt=""
+          src="./static/image/4160159908578ahbuieyxremovebgpreview-1@2x.png"
+        />
+      </div>
+    </div>
+
+    <script>
+      var scrollAnimElements = document.querySelectorAll("[data-animate-on-scroll]");
+      var observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting || entry.intersectionRatio > 0) {
+              const targetElement = entry.target;
+              targetElement.classList.add("animate");
+              observer.unobserve(targetElement);
+            }
+          }
+        },
+        {
+          threshold: 0.15,
+        }
+      );
+      
+      for (let i = 0; i < scrollAnimElements.length; i++) {
+        observer.observe(scrollAnimElements[i]);
+      }
+      </script>
+  </body>
+</html>

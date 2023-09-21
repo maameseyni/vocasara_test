@@ -1,0 +1,71 @@
+{
+    "ELAGAGES/": {
+      "I": "Elaguer ces arbres",
+      "J": "Guide de maintenance 2017 page 41"
+    },
+    "ABSENCE DE PARAFOUDRE/": {
+      "I": "mettres des parafoudres",
+      "J": "Guide de maintenance 2017 page "
+    },
+    "VIEILLISSEMENT ISOLATEUR/": {
+      "I": "Remplacer les isolateurs ",
+      "J": "Guide de maintenance 2017 page 41"
+    },
+    "VIEILLISSEMENT POTEAU/": {
+      "I": " remplacer le support ",
+      "J": "Guide de maintenance 2017 Page"
+    },
+    "CORPS ETRANGER/": {
+        "I": "veuillez nettoyer le support",
+        "J": "Guide de maintenance 2017 page "
+    },
+    "CABLE NON PROTEGE/": {
+        "I": "protéger les cables ",
+        "J": "Guide de maintenance 2017 page 41 "
+    },
+    "CORROSION DU TRANSFORMATEUR/": {
+        "I": "remplacer les IACM",
+        "J": "Guide de maintenance 2017 page "
+    },
+    "IACM OUVERT/": {
+        "I": "Veuiller fermer les iacm ouvert",
+        "J": "Guide de maintenance 2017 page "
+    },
+    "ISOLATEUR CASSE/": {
+        "I": "Veuiller remplacer les isolateurs casse",
+        "J": "Guide de maintenance 2017 page "
+    },
+    "ISOLATEUR POUSSIEREUX/": {
+        "I": "Veuiller nettoyer les isolateurs poussierux",
+        "J": "Guide de maintenance 2017 page "
+    },
+    "LIGNE HTA DETENDUE/": {
+         "I": "Veuiller verifie les lignes hta",
+        "J": "Guide de maintenance 2017 page "
+    },
+    "NID D'OISEAU/": {
+        "I": "Veuiller retirer le Nis d'oiseau",
+        "J": "Guide de maintenance 2017 page 20 "
+    },
+    "PARAFOUDRE HS/": {
+        "I": "Veuiller remplacer le parafoudre hs",
+        "J": "Guide de maintenance 2017 page "
+    },
+    "SURPLOMBEMENT/": {
+        "I": "enterrer les cables ",
+        "J": "Guide de maintenance 2017 page 20"
+    },
+    "BRANCHEMENT ANARCHIQUE/": {
+        "I": "verifie les cables ",
+        "J": "Guide de maintenance 2017 page 20"
+    },
+    "CORROSION POUTRELLE/": {
+        "I": "nettoyer les poutrelles ou les changer ",
+        "J": "Guide de maintenance 2017 page 20"
+    },
+    "EFFRITTEMENT DE LIGNE/": {
+        "I": "Veuiller remplacer la section de la ligne endomagées",
+        "J": "Guide de maintenance 2017 page 20"
+    }      
+  }
+  

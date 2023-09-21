@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vocasara</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> <!-- Ajout de Font Awesome -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <style>
+    body {
+      padding-top: 70px;
+      margin-bottom: 60px; /* Ajout de la marge en bas */
+    }
+    footer {
+      position: fixed; /* Changement de 'absolute' à 'fixed' */
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      line-height: 60px;
+
+      background-color: #f8f9fa;
+    }
+    footer p {
+      margin-bottom: 0;
+    }
+    /* Ajout du code CSS pour l'animation */
+    .navbar-toggler {
+      border: none; /* Supprimer la bordure du bouton */
+      background-color: transparent; /* Supprimer l'arrière-plan du bouton */
+    }
+
+    .navbar-toggler:focus {
+      outline: none; /* Supprimer la mise en évidence lors du focus */
+    }
+
+    .navbar-toggler-icon {
+      width: 20px;
+      height: 20px;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      transition: transform 0.3s; /* Ajout de la transition */
+    }
+
+    /* Rotation de l'icône du bouton hamburger lorsqu'il est ouvert */
+    .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
+        transform: rotate(90deg);
+        transition: transform 0.3s ease-in-out;
+    }
+    /* Ajout de l'animation de transition pour le menu */
+    .collapse.navbar-collapse {
+      transition: height 0.3s;
+    }
+        /* Rotation de l'icône du bouton hamburger lorsqu'il est fermé */
+    .rotate-icon {
+        transform: rotate(0deg);
+        transition: transform 0.3s ease-in-out;
+    }
+    /* Affichage du menu lorsqu'il est ouvert */
+    .collapse.navbar-collapse.show {
+      height: auto;
+    }
+    /* Animation pour les nouvelles notifications */
+    .new-notification {
+        background-color: #ffc107;
+        color: black;
+        border-radius: 20px;
+        padding: 10px;
+        margin: 5px;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    /* Animation pour les notifications lues */
+    .read-notification {
+        background-color: #f8f9fa;
+        color: black;
+        border-radius: 20px;
+        padding: 10px;
+        margin: 5px;
+        animation: fadeOut 0.5s ease-in-out;
+    }
+    /* Ajout d'icônes différentes pour les notifications lues et non lues */
+    .new-notification:before {
+      content: "\f0f3"; /* Icône de cloche */
+      font-family: "Font Awesome 5 Free";
+      padding-right: 10px;
+    }
+
+    .read-notification:before {
+      content: "\f1f6"; /* Icône de cloche barrée */
+      font-family: "Font Awesome 5 Free";
+      padding-right: 10px;
+    }
+    @keyframes fadeIn {
+      from {
+          opacity: 0;
+          transform: translateY(-10px);
+      }
+      to {
+          opacity: 1;
+          transform: translateY(0);
+      }
+  }
+  
+  @keyframes fadeOut {
+      from {
+          opacity: 1;
+          transform: translateY(0);
+      }
+      to {
+          opacity: 0;
+          transform: translateY(-10px);
+      }
+  }
+
+
+  </style>
+</head>
+<div class="container">
+  {% with messages = get_flashed_messages() %}
+      {% if messages %}
+          <div class="alert alert-warning alert-dismissible fade show" role="alert">
+              {% for message in messages %}
+                  {{ message }}<br>
+              {% endfor %}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+      {% endif %}
+  {% endwith %}
+</div>
+<body>
+  <nav class="navbar  navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <button class="navbar-toggler" type="button" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="menuNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('acceuil') }}"><i class="fas fa-home"></i> Accueil</a>
+        </li>
+          <a class="nav-link" href="{{ url_for('localisation_defauts') }}"><i class="fas fa-chart-bar"></i> Localisation
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('statistics') }}"><i class="fas fa-chart-bar"></i> Statistiques
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('formulaire_rapport') }}"><i class="fas fa-cogs"></i>Traitements</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('files') }}"><i class="fas fa-file"></i> Mes Fichiers</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('profil') }}"><i class="fas fa-user"></i> Profile</a>
+        </li>
+          {% if session.get('role') == 'admin' %}
+              <a class="nav-link admin-button" href="{{ url_for('app3.admin_dashboard') }}"><i class="fas fa-file"></i> Administrateur</a>
+          {% endif %}
+      </li>
+
+      <!-- Ajoutez une icône de notification avec un badge -->
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-bell"></i>
+          <span class="badge badge-danger" id="notificationBadge">0</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="notificationsDropdown" id="notificationsMenu">
+          <!-- Ici, les notifications seront ajoutées dynamiquement -->
+        </div>        
+        </li>        
+      </ul>
+    </div>
+  </nav>
+  <div class="container-fluid">
+    <div id="content">
+      <!-- Contenu de la page -->
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="text-center">
+        <p>@vocasara 2023. Tous droits réservés.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  // Ajouter un gestionnaire d'événements au bouton hamburger
+  const navbarToggler = document.querySelector(".navbar-toggler");
+  const menuNav = document.getElementById("menuNav");
+
+  // Gestionnaire d'événements pour le bouton hamburger
+  navbarToggler.addEventListener("click", function() {
+    // Ajouter ou supprimer la classe 'show' pour activer ou désactiver le menu
+    menuNav.classList.toggle("show");
+    // Ajouter une animation de rotation au bouton hamburger
+    navbarTogglerIcon.classList.toggle("rotate-icon");
+  });
+
+  // Sélectionnez également l'icône du bouton hamburger
+  const navbarTogglerIcon = document.querySelector(".navbar-toggler-icon");
+
+
+  // Mettre à jour la couleur de fond pour marquer les notifications comme lues
+  function markNotificationAsRead(notificationItem) {
+    notificationItem.classList.remove('new-notification');
+  }
+  // Fonction pour récupérer les notifications du serveur et les afficher
+function getNotifications() {
+  $.ajax({
+    url: '/get_notifications', // Endpoint Flask pour récupérer les notifications
+    method: 'GET',
+    dataType: 'json',
+    data: { role: '{{ session.get('role') }}' }, // Utiliser la valeur de rôle stockée dans la variable de session
+    success: function (data) {
+      // Traiter les données et afficher les notifications dans le menu déroulant
+      const notificationsMenu = document.getElementById('notificationsMenu');
+      const notificationBadge = document.getElementById('notificationBadge');
+      notificationsMenu.innerHTML = ''; // Réinitialiser le menu
+      let unreadNotifications = 0;
+
+      data.forEach((notification) => {
+        const notificationItem = document.createElement('a');
+        notificationItem.classList.add('dropdown-item');
+        if (!notification.is_read) {
+          notificationItem.classList.add('new-notification');
+          unreadNotifications++;
+        } else {
+          notificationItem.classList.add('read-notification');
+        }
+        notificationItem.textContent = notification.notification;
+
+        // Ajouter l'ID de la notification en tant qu'attribut "data-id"
+        notificationItem.setAttribute('data-id', notification.id);
+
+        notificationItem.addEventListener('click', function () {
+          markNotificationAsRead(notificationItem);
+        });
+        notificationsMenu.appendChild(notificationItem);
+      });
+
+      // Mettre à jour le badge de notification
+      notificationBadge.textContent = unreadNotifications;
+    },
+    error: function (error) {
+      console.error('Erreur lors de la récupération des notifications:', error);
+    },
+  });
+}
+  // Appeler la fonction pour récupérer les notifications dès que la page est chargée
+  $(document).ready(function () {
+    getNotifications();
+  });
+  // Mettre à jour la couleur de fond pour marquer les notifications comme lues
+    function markNotificationAsRead(notificationItem) {
+      notificationItem.classList.remove('new-notification');
+
+      const notificationId = notificationItem.getAttribute('data-id');
+
+      $.ajax({
+        url: '/mark_notification_as_read',
+        method: 'POST',
+        data: { notificationId: notificationId },
+        headers: { role: '{{ session.get('role') }}' }, // Ajoutez cette ligne pour envoyer le rôle de l'utilisateur en tant qu'en-tête
+        success: function (response) {
+          console.log('Notification marquée comme lue.');
+        },
+        error: function (error) {
+          console.error('Erreur lors de la mise à jour du statut de la notification:', error);
+        },
+      });
+    }
+
+  $(document).ready(function () {
+    getNotifications();
+
+    // Mettre à jour les notifications toutes les 3 secondes
+    setIntervalw(getNotifications, 3000);
+  });
+
+  </script>
+</body>
+</html>

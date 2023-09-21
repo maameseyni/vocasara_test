@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+{% include 'navbar.html' %} 
+<body>
+  <div class="container mt-4">
+    <a href="{{ url_for('app3.admin_dashboard') }}" class="btn btn-secondary mb-4"><i class="fas fa-arrow-left"></i> Retour</a>
+    <h1>Résumé de rapport</h1>
+    <form id="champsForm" method="POST" action="/resume_rapport">
+      <div id="champsContainer">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="utilisation">Utilisation :</label>
+            <input type="text" class="form-control" name="utilisation[]" placeholder="Utilisation" required>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="session">Session :</label>
+            <input type="text" class="form-control" name="session[]" placeholder="Session" required>
+          </div>
+          <div class="form-group col-md-1">
+            <button type="button" class="btn btn-danger supprimerChamp"><i class="fas fa-minus"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <button type="button" class="btn btn-success" id="ajouterChamp"><i class="fas fa-plus"></i></button>
+      </div>
+      <button type="submit" class="btn btn-primary">Envoyer</button>
+    </form>
+  </div>
+
+  <!-- Font Awesome (for + and - icons) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+   <!-- notification styles-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      // Ajouter un champ de texte
+      $("#ajouterChamp").click(function () {
+        var html = '<div class="form-row">' +
+          '<div class="form-group col-md-6">' +
+          '<label for="utilisation">Utilisation :</label>' +
+          '<input type="text" class="form-control" name="utilisation[]" placeholder="Utilisation" required>' +
+          '</div>' +
+          '<div class="form-group col-md-6">' +
+          '<label for="session">Session :</label>' +
+          '<input type="text" class="form-control" name="session[]" placeholder="Session" required>' +
+          '</div>' +
+          '<div class="form-group col-md-1">' +
+          '<button type="button" class="btn btn-danger supprimerChamp"><i class="fas fa-minus"></i></button>' +
+          '</div>' +
+          '</div>';
+        $("#champsContainer").append(html);
+      });
+
+      // Supprimer un champ de texte
+      $(document).on("click", ".supprimerChamp", function () {
+        $(this).closest(".form-row").remove();
+      });
+    });
+  </script>
+</body>
+</html>

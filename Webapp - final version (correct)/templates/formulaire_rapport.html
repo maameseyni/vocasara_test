@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulaire</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      background-color: white;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+
+    .form-container input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .form-container input[type="text"]:focus {
+      outline: none;
+      border-color: #80bdff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .form-group {
+      text-align: left;
+    }
+
+    .button-text {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: bold;
+    }
+    @media (max-width : 600px) {
+      .form-container{
+        width:90%;
+      }
+
+    }
+  </style>
+</head>
+<!-- Inclure la navbar -->
+{% include 'navbar.html' %}
+<body>
+  <div class="container">
+    <div class="form-container">
+      <h2>Génération de Rapport</h2>
+      <form id="reportForm" method="post" action="/generate_report_data">
+        <div class="form-group">
+          <label for="feeder">Nom du feeder :</label>
+          <input type="text" class="form-control" id="feeder" name="feeder" required>
+        </div>
+        <div class="form-group">
+          <label for="troncon">Tronçon :</label>
+          <input type="text" class="form-control" id="troncon" name="troncon" required>
+        </div>
+        <div class="form-group">
+          <label for="date">Dates de visite :</label>
+          <input type="text" class="form-control" id="date" name="date" required>
+        </div>
+        <div class="form-group">
+          <label for="names">Nom de l'opérateur :</label> 
+          <input type="text" class="form-control" id="names" name="names" required>
+        </div>
+        <div class="form-group">
+          <label for="zone">Zone DRS/DRN :</label>
+          <input type="text" class="form-control" id="zone" name="zone" required>
+        </div> 
+        <div class="form-group">
+          <label for="groupement">GROUPEMENT TRONCONS ENTRE :</label>
+          <input type="text" class="form-control" id="groupement" name="groupement" required>
+        </div>        
+        <button type="submit" class="btn btn-primary" id="confirmButton">Confirmer</button>
+      </form>
+      <div class="button-text">
+        <!-- Ajouter cette div pour afficher un message d'erreur -->
+        <div id="errorMessage" class="alert alert-danger" style="display: none;">Veuillez remplir tous les champs obligatoires.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+  <script>
+    document.getElementById("confirmButton").disabled = true; // Désactive le bouton de confirmation au chargement de la page
+
+    // Vérifie si tous les champs sont remplis pour activer/désactiver le bouton de confirmation
+    function checkForm() {
+      const feeder = document.getElementById("feeder").value;
+      const troncon = document.getElementById("troncon").value;
+      const date = document.getElementById("date").value;
+      const names = document.getElementById("names").value;
+      const zone = document.getElementById("zone").value;
+      const groupement = document.getElementById("groupement").value;
+
+      if (feeder !== "" && troncon !== "" && date !== "" && names !== "" && zone !== "" && groupement !== "") {
+        document.getElementById("confirmButton").disabled = false;
+        document.getElementById("errorMessage").style.display = "none"; // Cacher le message d'erreur
+      } else {
+        document.getElementById("confirmButton").disabled = true;
+        document.getElementById("errorMessage").style.display = "block"; // Afficher le message d'erreur
+      }
+    }
+
+    // Enregistre les valeurs du formulaire dans les cookies
+    function saveFormData() {
+      const feeder = encodeURIComponent(document.getElementById("feeder").value);
+      const troncon = encodeURIComponent(document.getElementById("troncon").value);
+      const date = encodeURIComponent(document.getElementById("date").value);
+      const names = encodeURIComponent(document.getElementById("names").value);
+      const zone = encodeURIComponent(document.getElementById("zone").value);
+      const groupement = encodeURIComponent(document.getElementById("groupement").value);
+
+      document.cookie = `feeder=${feeder}; path=/`;
+      document.cookie = `troncon=${troncon}; path=/`;
+      document.cookie = `date=${date}; path=/`;
+      document.cookie = `names=${names}; path=/`;
+      document.cookie = `zone=${zone}; path=/`;
+      document.cookie = `groupement=${groupement}; path=/`;
+    }
+
+    // Charge les valeurs du formulaire depuis les cookies
+    function loadFormData() {
+      const cookies = document.cookie.split(';');
+      const formData = {};
+
+      cookies.forEach(cookie => {
+        const parts = cookie.trim().split('=');
+        const key = decodeURIComponent(parts[0]);
+        const value = decodeURIComponent(parts[1]);
+        formData[key] = value;
+      });
+
+      if (formData.feeder) {
+        document.getElementById("feeder").value = formData.feeder;
+      }
+      if (formData.troncon) {
+        document.getElementById("troncon").value = formData.troncon;
+      }
+      if (formData.date) {
+        document.getElementById("date").value = formData.date;
+      }
+      if (formData.names) {
+        document.getElementById("names").value = formData.names;
+      }
+      if (formData.zone) {
+        document.getElementById("zone").value = formData.zone;
+      }
+      if (formData.groupement) {
+        document.getElementById("groupement").value = formData.groupement;
+      }
+    }
+
+    // Ajoute l'événement de vérification des champs à chaque modification de valeur
+    const formInputs = document.querySelectorAll(".form-control");
+    formInputs.forEach(input => {
+      input.addEventListener("input", checkForm);
+    });
+
+    // Enregistre les valeurs du formulaire lors de la soumission
+    document.getElementById("reportForm").addEventListener("submit", function(event) {
+      event.preventDefault(); // Empêche la soumission du formulaire
+      saveFormData();
+      this.submit(); // Soumet le formulaire après avoir enregistré les données
+    });
+
+    // Charge les valeurs du formulaire au chargement de la page
+    window.addEventListener("load", function() {
+      loadFormData();
+      checkForm();
+    });
+  </script>
+</body>
+</html>

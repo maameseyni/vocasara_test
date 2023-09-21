@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Page d'Accueil avec Carte Google Maps</title>
+    <!-- Autres balises d'en-tête que vous souhaitez inclure -->
+</head>
+{%include 'navbar.html'%}
+<body>
+    <!-- En-tête de votre page -->
+    <header>
+        <h1>Ma Page d'Accueil</h1>
+        <!-- Autres éléments d'en-tête -->
+    </header>
+
+    <!-- Contenu de votre page d'accueil -->
+    <div>
+        <p>Bienvenue sur ma page d'accueil.</p>
+        <!-- Autres éléments de contenu -->
+
+        <!-- Code pour intégrer la carte Google Maps -->
+        <iframe
+            id="google-map"
+            src="https://www.google.com/maps/d/u/0/embed?mid=1IacVwEEiFNwmZas9qBmDT3i3eYcy1Xw"
+            width="100%"
+            height="800"
+            padding = "auto"
+            frameborder="0"
+            style="border:0"
+            allowfullscreen
+        ></iframe>
+    </div>
+
+    </footer>
+
+    <!-- Script JavaScript pour zoomer sur la carte -->
+    <script>
+        const iframe = document.getElementById('google-map');
+        iframe.addEventListener('click', () => {
+            // Vous pouvez ajuster le niveau de zoom en modifiant le paramètre "z" dans l'URL
+            iframe.src = "https://www.google.com/maps/d/u/0/embed?mid=1IacVwEEiFNwmZas9qBmDT3i3eYcy1Xw&z=15";
+        });
+    </script>
+</body>
+</html>

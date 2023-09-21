@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Résultats de recherche</title>
+    <!-- Inclure les feuilles de style Bootstrap et Font Awesome -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<!-- Inclure la navbar -->
+{% include 'navbar.html' %}
+<body>
+    <div class="container mt-5">
+        <h1>Résultats de recherche</h1>
+        <div class="row" id="search-results">
+            <!-- Les résultats de recherche seront insérés ici -->
+        </div>
+    </div>
+
+    <!-- Inclure les scripts jQuery et Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Obtenir les résultats de recherche depuis Flask et les insérer dans la page
+        $(document).ready(function() {
+            var searchText = "{{ search_query }}";  // Récupérer la requête de recherche depuis Flask
+
+            // Faites une requête AJAX vers la route de recherche côté serveur
+            fetch("/search?query=" + searchText)
+                .then(response => response.json())  // Convertir la réponse en JSON
+                .then(data => {
+                    var resultsDiv = $("#search-results");
+
+                    // Parcourir les résultats et construire les éléments HTML
+                    data.results.forEach(function(result) {
+                        var resultItem = `
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${result.name}</h5>
+                                        <p class="card-text">${result.last_modified}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        resultsDiv.append(resultItem);
+                    });
+                })
+                .catch(error => console.error("Erreur lors de la requête: ", error));
+        });
+        
+    </script>
+</body>
+</html>
